@@ -1,0 +1,90 @@
+{
+  "title": "Aduro Hybrid",
+  "config": {
+    "abort": {
+      "already_configured": "Dieser Aduro-Ofen ist bereits eingerichtet.",
+      "reconfigure_successful": "Die Aduro-Konfiguration wurde erfolgreich aktualisiert.",
+      "unique_id_mismatch": "Die eingegebene Seriennummer gehört zu einem anderen Ofen."
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Ofen fehlgeschlagen. Prüfe IP-Adresse und Netzwerkverbindung.",
+      "invalid_auth": "Der Ofen hat Seriennummer oder PIN abgelehnt.",
+      "invalid_host": "Gib eine IP-Adresse oder einen Hostnamen ein.",
+      "invalid_pin": "Die PIN muss aus 1 bis 10 Ziffern bestehen.",
+      "invalid_response": "Der Ofen hat geantwortet, aber die Antwort war ungültig oder passte nicht zur Anfrage.",
+      "invalid_serial": "Die Seriennummer muss aus 1 bis 6 Ziffern bestehen.",
+      "unknown": "Unerwarteter Fehler. Weitere Einzelheiten stehen im Home-Assistant-Protokoll."
+    },
+    "step": {
+      "user": {
+        "title": "Aduro-Ofen verbinden",
+        "description": "Gib die lokalen Verbindungsdaten vom Typenschild des Ofens ein. Home Assistant prüft sie vor dem Speichern direkt am Ofen.",
+        "data": {
+          "host": "IP-Adresse oder Hostname",
+          "serial": "Seriennummer",
+          "pin": "PIN",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "host": "Lokale IP-Adresse des Ofens, zum Beispiel 192.168.1.250",
+          "serial": "Bis zu 6 Ziffern; kürzere Nummern werden wie in der Aduro-App aufgefüllt",
+          "pin": "Bis zu 10 Ziffern vom Typenschild des Ofens",
+          "scan_interval": "Sekunden zwischen den Aktualisierungen (15 bis 300)"
+        }
+      },
+      "reconfigure": {
+        "title": "Aduro neu konfigurieren",
+        "description": "Ändere die lokalen Verbindungsdaten. Sie werden geprüft, bevor die Integration neu geladen wird.",
+        "data": {
+          "host": "IP-Adresse oder Hostname",
+          "serial": "Seriennummer",
+          "pin": "PIN",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "host": "Lokale IP-Adresse des Ofens",
+          "serial": "Bis zu 6 Ziffern",
+          "pin": "Bis zu 10 Ziffern vom Typenschild des Ofens",
+          "scan_interval": "Sekunden zwischen den Aktualisierungen (15 bis 300)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "number": {"force_auger": {"name": "Förderer erzwingen"}},
+    "select": {"fixed_power": {"name": "Feste Leistung"}},
+    "sensor": {
+      "carbon_monoxide": {"name": "Kohlenmonoxid"},
+      "exhaust_speed": {"name": "Abgasgebläse"},
+      "oxygen": {"name": "Sauerstoff"},
+      "power_percentage": {"name": "Leistung"},
+      "room_temperature": {"name": "Raumtemperatur"},
+      "shaft_temperature": {"name": "Schachttemperatur"},
+      "smoke_temperature": {"name": "Rauchgastemperatur"},
+      "state_number": {"name": "Statusnummer"},
+      "state_time": {"name": "Statusdauer"},
+      "stove_state": {
+        "name": "Status",
+        "state": {
+          "door_open": "Tür offen",
+          "extended_ignition": "Zündung verlängert",
+          "flame_out": "Angehalten, Flamme erloschen",
+          "heating_up": "Betrieb, Aufheizen",
+          "ignition": "Zündung eingeleitet",
+          "ignition_failed": "Angehalten, Zündung fehlgeschlagen",
+          "off": "Aus",
+          "pellet_air_intake_closed": "Pellet-Luftzufuhrhebel geschlossen",
+          "running": "Betrieb, normal",
+          "stopping": "Aus eingeleitet",
+          "temperature_reached": "Betrieb, Temperatur erreicht",
+          "unknown": "Unbekannt",
+          "waiting": "Betrieb, warten",
+          "wood_burning": "Angehalten, Holzverbrennung"
+        }
+      },
+      "substate_number": {"name": "Unterstatusnummer"},
+      "total_hours": {"name": "Gesamtbetriebszeit"}
+    },
+    "switch": {"heating": {"name": "Heizbetrieb"}}
+  }
+}

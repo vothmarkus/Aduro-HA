@@ -1,0 +1,13 @@
+{
+  "domain": "aduro",
+  "name": "Aduro Hybrid",
+  "codeowners": ["@vothmarkus"],
+  "config_flow": true,
+  "documentation": "https://github.com/vothmarkus/Aduro-HA",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/vothmarkus/Aduro-HA/issues",
+  "loggers": ["pyduro"],
+  "requirements": ["pyduro==3.2.1"],
+  "version": "0.1.0"
+}

@@ -1,0 +1,124 @@
+{
+  "title": "Aduro Hybrid",
+  "config": {
+    "abort": {
+      "already_configured": "This Aduro stove is already configured.",
+      "reconfigure_successful": "The Aduro configuration was updated successfully.",
+      "unique_id_mismatch": "The entered serial number belongs to a different stove."
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the stove. Check its IP address and network connection.",
+      "invalid_auth": "The stove rejected the serial number or PIN.",
+      "invalid_host": "Enter an IP address or hostname.",
+      "invalid_pin": "The PIN must contain 1 to 10 digits.",
+      "invalid_response": "The stove answered, but its response was invalid or did not match the request.",
+      "invalid_serial": "The serial number must contain 1 to 6 digits.",
+      "unknown": "Unexpected error. Check the Home Assistant log for details."
+    },
+    "step": {
+      "user": {
+        "title": "Connect an Aduro stove",
+        "description": "Enter the local connection details printed on the stove. Home Assistant validates them directly with the stove before saving.",
+        "data": {
+          "host": "IP address or hostname",
+          "serial": "Serial number",
+          "pin": "PIN",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "host": "Local IP address of the stove, for example 192.168.1.250",
+          "serial": "Up to 6 digits; shorter serial numbers are padded exactly as in the Aduro app",
+          "pin": "Up to 10 digits from the stove label",
+          "scan_interval": "Seconds between updates (15 to 300)"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Aduro",
+        "description": "Change the local connection details. They are tested before the integration is reloaded.",
+        "data": {
+          "host": "IP address or hostname",
+          "serial": "Serial number",
+          "pin": "PIN",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "host": "Local IP address of the stove",
+          "serial": "Up to 6 digits",
+          "pin": "Up to 10 digits from the stove label",
+          "scan_interval": "Seconds between updates (15 to 300)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "force_auger": {
+        "name": "Force auger"
+      }
+    },
+    "select": {
+      "fixed_power": {
+        "name": "Fixed power"
+      }
+    },
+    "sensor": {
+      "carbon_monoxide": {
+        "name": "Carbon monoxide"
+      },
+      "exhaust_speed": {
+        "name": "Exhaust speed"
+      },
+      "oxygen": {
+        "name": "Oxygen"
+      },
+      "power_percentage": {
+        "name": "Power"
+      },
+      "room_temperature": {
+        "name": "Room temperature"
+      },
+      "shaft_temperature": {
+        "name": "Shaft temperature"
+      },
+      "smoke_temperature": {
+        "name": "Smoke temperature"
+      },
+      "state_number": {
+        "name": "State number"
+      },
+      "state_time": {
+        "name": "State time"
+      },
+      "stove_state": {
+        "name": "State",
+        "state": {
+          "door_open": "Door open",
+          "extended_ignition": "Extended ignition",
+          "flame_out": "Stopped, flame out",
+          "heating_up": "Running, heating up",
+          "ignition": "Ignition started",
+          "ignition_failed": "Stopped, ignition failed",
+          "off": "Off",
+          "pellet_air_intake_closed": "Pellet air intake closed",
+          "running": "Running, normal",
+          "stopping": "Stopping",
+          "temperature_reached": "Running, temperature reached",
+          "unknown": "Unknown",
+          "waiting": "Running, waiting",
+          "wood_burning": "Stopped, wood burning"
+        }
+      },
+      "substate_number": {
+        "name": "Substate number"
+      },
+      "total_hours": {
+        "name": "Total operating time"
+      }
+    },
+    "switch": {
+      "heating": {
+        "name": "Heating"
+      }
+    }
+  }
+}
