@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Add the combined Home Assistant/Aduro icon and logo from Aduro2mqttAddon
+- Enable HACS brand validation for the bundled local assets
+
 ## 0.1.2
 
 - Integrate Off, Auto, and Heat into the climate operating modes

@@ -9,5 +9,5 @@
   "issue_tracker": "https://github.com/vothmarkus/Aduro-HA/issues",
   "loggers": ["pyduro"],
   "requirements": ["pyduro==3.2.1"],
-  "version": "0.1.2"
+  "version": "0.1.3"
 }

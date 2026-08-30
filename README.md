@@ -4,7 +4,7 @@ Native Home-Assistant-Integration für den **Aduro H2 Hybridofen** über das lok
 
 [English documentation](README.en.md)
 
-## Funktionen in v0.1.2
+## Funktionen in v0.1.3
 
 | Home-Assistant-Entität | Funktion |
 |---|---|
