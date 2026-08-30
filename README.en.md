@@ -2,17 +2,19 @@
 
 Native Home Assistant integration for the **Aduro H2 hybrid stove** over the local NBE/UDP protocol. It provides the controls from the [Aduro2MQTT add-on](https://github.com/vothmarkus/Aduro2mqttAddon) without requiring MQTT or a separate add-on.
 
-## Features in v0.1.0
+## Features in v0.1.1
 
-- Climate entity for current/target temperature and temperature/fixed-power mode
+- Climate entity for current/target temperature, operating mode, and three heat levels
 - Heating switch for start and stop
-- Fixed power selection: 10%, 50%, or 100%
 - Forced auger run from 0 to 120 seconds
 - Translated stove state
-- Room, smoke, and shaft temperature, oxygen, power, exhaust, CO, and total-hours sensors
+- Room and smoke temperature, power, CO, and total-hours sensors
+- Shaft temperature and oxygen sensors, disabled by default
 - Disabled-by-default raw state diagnostic sensors
 
 Climate **Auto** is the Aduro H2 temperature mode and always writes `regulation.operation_mode = 1`. **Heat** selects fixed-power mode (`0`). Start and stop remain on the separate heating switch, matching the proven add-on behavior.
+
+In **Heat** mode, the climate card provides **Eco** (10%), **Comfort** (50%), and **Boost** (100%) presets. Selecting a preset automatically switches from Auto to Heat when needed. In Auto, the stored fixed-power value is inactive and the preset is shown as “None”.
 
 Commands are not optimistic. The integration validates the direct NBE reply, immediately refreshes the stove, and read-verifies persistent settings. It also validates response serial, function, sequence, and status fields.
 

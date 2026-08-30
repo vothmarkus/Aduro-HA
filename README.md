@@ -4,16 +4,16 @@ Native Home-Assistant-Integration für den **Aduro H2 Hybridofen** über das lok
 
 [English documentation](README.en.md)
 
-## Funktionen in v0.1.0
+## Funktionen in v0.1.1
 
 | Home-Assistant-Entität | Funktion |
 |---|---|
-| Klima | Ist- und Solltemperatur sowie Temperatur- oder Festleistungsbetrieb |
+| Klima | Ist- und Solltemperatur, Temperatur- oder Festleistungsbetrieb und drei integrierte Heizstufen |
 | Schalter „Heizbetrieb“ | Ofen starten und stoppen |
-| Auswahl „Feste Leistung“ | 10 %, 50 % oder 100 % |
 | Zahl „Förderer erzwingen“ | Förderschnecke für 0 bis 120 Sekunden ansteuern |
 | Statussensor | Übersetzter Betriebszustand inklusive Fehler- und Türzuständen |
-| Messsensoren | Raum-, Rauchgas- und Schachttemperatur, Sauerstoff, Leistung, Abgasgebläse, CO und Gesamtbetriebszeit |
+| Messsensoren | Raum- und Rauchgastemperatur, Leistung, CO und Gesamtbetriebszeit |
+| Optionale Sensoren | Schachttemperatur und Sauerstoff; standardmäßig deaktiviert |
 | Diagnosesensoren | Rohwerte für Status, Unterstatus und Statusdauer; standardmäßig deaktiviert |
 
 Die Klima-Modi entsprechen der bewährten Add-on-Logik:
@@ -21,6 +21,14 @@ Die Klima-Modi entsprechen der bewährten Add-on-Logik:
 - **Auto**: temperaturgeregelter Betrieb, fest `regulation.operation_mode = 1`
 - **Heizen**: Festleistungsbetrieb, `regulation.operation_mode = 0`
 - Start und Stopp erfolgen bewusst über den separaten Heizbetrieb-Schalter. „Aus“ ist nur ein angezeigter Aktivitätszustand und kein dritter Klima-Modus.
+
+Im Modus **Heizen** stehen direkt in der Klimakarte drei Voreinstellungen zur Verfügung:
+
+- **Eco**: 10 %
+- **Komfort**: 50 %
+- **Boost**: 100 %
+
+Die Auswahl einer dieser Stufen wechselt bei Bedarf automatisch von **Auto** zu **Heizen**. Im Automatikbetrieb wird die gespeicherte Festleistung nicht verwendet und die Voreinstellung als „Ohne“ angezeigt.
 
 ## Warum die native Integration zuverlässiger reagiert
 

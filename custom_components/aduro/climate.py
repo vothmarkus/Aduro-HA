@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import Any, ClassVar
 
-from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate import (
+    PRESET_BOOST,
+    PRESET_COMFORT,
+    PRESET_ECO,
+    ClimateEntity,
+)
 from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACAction,
@@ -17,7 +22,14 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import AduroCoordinator
 from .entity import AduroEntity
-from .model import as_float, as_int, is_heating, values_equal
+from .model import (
+    as_float,
+    as_int,
+    fixed_power_for_preset,
+    fixed_power_preset,
+    is_heating,
+    values_equal,
+)
 
 PARALLEL_UPDATES = 0
 
@@ -36,7 +48,14 @@ class AduroClimate(AduroEntity, ClimateEntity):
 
     _attr_name = None
     _attr_hvac_modes: ClassVar[list[HVACMode]] = [HVACMode.AUTO, HVACMode.HEAT]
-    _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
+    _attr_preset_modes: ClassVar[list[str]] = [
+        PRESET_ECO,
+        PRESET_COMFORT,
+        PRESET_BOOST,
+    ]
+    _attr_supported_features = (
+        ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+    )
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp = 5
     _attr_max_temp = 35
@@ -84,6 +103,11 @@ class AduroClimate(AduroEntity, ClimateEntity):
             HVACAction.HEATING if is_heating(self.coordinator.data) else HVACAction.OFF
         )
 
+    @property
+    def preset_mode(self) -> str | None:
+        """Return the active 10/50/100 percent fixed-power level."""
+        return fixed_power_preset(self.coordinator.data)
+
     async def async_set_temperature(self, **kwargs: Any) -> None:
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is None:
@@ -107,3 +131,21 @@ class AduroClimate(AduroEntity, ClimateEntity):
                 data.setting("regulation", "operation_mode"), value
             ),
         )
+
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set Eco/Comfort/Boost and activate fixed-power heating."""
+        value = fixed_power_for_preset(preset_mode)
+        if value is None:
+            raise ValueError(f"Unsupported Aduro preset mode: {preset_mode}")
+
+        # Store the power before entering fixed-power mode so the stove cannot
+        # briefly start at a previously selected level.
+        await self.coordinator.async_command(
+            "regulation.fixed_power",
+            value,
+            verify=lambda data: values_equal(
+                data.setting("regulation", "fixed_power"), value
+            ),
+        )
+        if self.hvac_mode != HVACMode.HEAT:
+            await self.async_set_hvac_mode(HVACMode.HEAT)

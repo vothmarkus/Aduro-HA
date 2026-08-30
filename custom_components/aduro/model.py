@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from math import isclose, isfinite
 from typing import Any
 
-from .const import OFF_STATE_CODES
+from .const import FIXED_POWER_PRESETS, OFF_STATE_CODES
 
 Value = str | int | float | None
 
@@ -59,6 +59,26 @@ def is_heating(data: AduroData) -> bool | None:
     if state is None:
         return None
     return state not in OFF_STATE_CODES
+
+
+def fixed_power_preset(data: AduroData) -> str | None:
+    """Return the active fixed-power preset, or None in temperature mode."""
+    if as_int(data.setting("regulation", "operation_mode")) != 0:
+        return None
+
+    power = as_float(data.setting("regulation", "fixed_power"))
+    if power is None:
+        return None
+    if power >= 90:
+        return "boost"
+    if power >= 40:
+        return "comfort"
+    return "eco"
+
+
+def fixed_power_for_preset(preset: str) -> int | None:
+    """Return the fixed pellet power for a Home Assistant preset."""
+    return FIXED_POWER_PRESETS.get(preset)
 
 
 def stove_state_key(data: AduroData) -> str:

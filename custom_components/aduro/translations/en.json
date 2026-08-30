@@ -52,10 +52,8 @@
   },
   "entity": {
     "number": {"force_auger": {"name": "Force auger"}},
-    "select": {"fixed_power": {"name": "Fixed power"}},
     "sensor": {
       "carbon_monoxide": {"name": "Carbon monoxide"},
-      "exhaust_speed": {"name": "Exhaust speed"},
       "oxygen": {"name": "Oxygen"},
       "power_percentage": {"name": "Power"},
       "room_temperature": {"name": "Room temperature"},

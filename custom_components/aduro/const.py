@@ -16,6 +16,12 @@ MAX_SCAN_INTERVAL: Final = 300
 
 COMMAND_REFRESH_DELAYS: Final = (0.6, 1.5)
 
+FIXED_POWER_PRESETS: Final = {
+    "eco": 10,
+    "comfort": 50,
+    "boost": 100,
+}
+
 # Kept identical to the proven Aduro2mqtt add-on behavior. The controller
 # reports these states as not heating, even if some are fault/door states.
 OFF_STATE_CODES: Final = frozenset({13, 14, 20, 28})

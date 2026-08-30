@@ -75,6 +75,7 @@ SENSORS: tuple[AduroSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
+        entity_registry_enabled_default=False,
         value_fn=lambda data: as_float(data.status.get("shaft_temp")),
     ),
     AduroSensorDescription(
@@ -84,6 +85,7 @@ SENSORS: tuple[AduroSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
         icon="mdi:molecule",
+        entity_registry_enabled_default=False,
         value_fn=lambda data: as_float(data.status.get("oxygen")),
     ),
     AduroSensorDescription(
@@ -94,13 +96,6 @@ SENSORS: tuple[AduroSensorDescription, ...] = (
         suggested_display_precision=0,
         icon="mdi:fire-circle",
         value_fn=lambda data: as_float(data.status.get("power_pct")),
-    ),
-    AduroSensorDescription(
-        key="exhaust_speed",
-        translation_key="exhaust_speed",
-        state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:fan",
-        value_fn=lambda data: as_float(data.status.get("exhaust_speed")),
     ),
     AduroSensorDescription(
         key="carbon_monoxide",

@@ -52,10 +52,8 @@
   },
   "entity": {
     "number": {"force_auger": {"name": "Förderer erzwingen"}},
-    "select": {"fixed_power": {"name": "Feste Leistung"}},
     "sensor": {
       "carbon_monoxide": {"name": "Kohlenmonoxid"},
-      "exhaust_speed": {"name": "Abgasgebläse"},
       "oxygen": {"name": "Sauerstoff"},
       "power_percentage": {"name": "Leistung"},
       "room_temperature": {"name": "Raumtemperatur"},

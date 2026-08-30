@@ -13,7 +13,6 @@ from .coordinator import AduroCoordinator
 PLATFORMS: tuple[Platform, ...] = (
     Platform.CLIMATE,
     Platform.SWITCH,
-    Platform.SELECT,
     Platform.NUMBER,
     Platform.SENSOR,
 )
