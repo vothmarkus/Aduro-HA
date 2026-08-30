@@ -9,6 +9,7 @@ from typing import Any
 from .const import FIXED_POWER_PRESETS, OFF_STATE_CODES
 
 Value = str | int | float | None
+ClimateCommand = tuple[str, int]
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,9 +62,48 @@ def is_heating(data: AduroData) -> bool | None:
     return state not in OFF_STATE_CODES
 
 
+def climate_mode_key(data: AduroData) -> str | None:
+    """Return off/auto/heat from actual stove state and configured regulation."""
+    stove_on = is_heating(data)
+    if stove_on is None:
+        return None
+    if not stove_on:
+        return "off"
+
+    operation_mode = as_int(data.setting("regulation", "operation_mode"))
+    if operation_mode == 1:
+        return "auto"
+    if operation_mode == 0:
+        return "heat"
+    return None
+
+
+def climate_mode_commands(
+    data: AduroData, target_mode: str
+) -> tuple[ClimateCommand, ...] | None:
+    """Plan safe writes for Off/Auto/Heat without issuing duplicate pulses."""
+    stove_on = is_heating(data)
+    if stove_on is None:
+        return None
+
+    if target_mode == "off":
+        return (("misc.stop", 1),) if stove_on else ()
+
+    operation_mode = {"auto": 1, "heat": 0}.get(target_mode)
+    if operation_mode is None:
+        return None
+
+    commands: list[ClimateCommand] = []
+    if not values_equal(data.setting("regulation", "operation_mode"), operation_mode):
+        commands.append(("regulation.operation_mode", operation_mode))
+    if not stove_on:
+        commands.append(("misc.start", 1))
+    return tuple(commands)
+
+
 def fixed_power_preset(data: AduroData) -> str | None:
     """Return the active fixed-power preset, or None in temperature mode."""
-    if as_int(data.setting("regulation", "operation_mode")) != 0:
+    if climate_mode_key(data) != "heat":
         return None
 
     power = as_float(data.setting("regulation", "fixed_power"))

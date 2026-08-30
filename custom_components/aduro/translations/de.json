@@ -82,7 +82,6 @@
       },
       "substate_number": {"name": "Unterstatusnummer"},
       "total_hours": {"name": "Gesamtbetriebszeit"}
-    },
-    "switch": {"heating": {"name": "Heizbetrieb"}}
+    }
   }
 }

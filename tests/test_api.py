@@ -167,7 +167,13 @@ def test_set_is_allowlisted_and_validates_reply(
     monkeypatch.setattr(api.pyduro_set, "run", fake_set)
     client = AduroClient("192.0.2.10", "84956", "4438539130")
     client.set_value("regulation.operation_mode", 1)
-    assert calls == [("regulation.operation_mode", 1)]
+    client.set_value("misc.start", 1)
+    client.set_value("misc.stop", 1)
+    assert calls == [
+        ("regulation.operation_mode", 1),
+        ("misc.start", 1),
+        ("misc.stop", 1),
+    ]
 
     with pytest.raises(ValueError, match="Unsupported"):
         client.set_value("manual.unsafe", 1)

@@ -82,7 +82,6 @@
       },
       "substate_number": {"name": "Substate number"},
       "total_hours": {"name": "Total operating time"}
-    },
-    "switch": {"heating": {"name": "Heating"}}
+    }
   }
 }

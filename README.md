@@ -4,23 +4,24 @@ Native Home-Assistant-Integration für den **Aduro H2 Hybridofen** über das lok
 
 [English documentation](README.en.md)
 
-## Funktionen in v0.1.1
+## Funktionen in v0.1.2
 
 | Home-Assistant-Entität | Funktion |
 |---|---|
-| Klima | Ist- und Solltemperatur, Temperatur- oder Festleistungsbetrieb und drei integrierte Heizstufen |
-| Schalter „Heizbetrieb“ | Ofen starten und stoppen |
+| Klima | Ein/Aus, Ist- und Solltemperatur, Temperatur- oder Festleistungsbetrieb und drei integrierte Heizstufen |
 | Zahl „Förderer erzwingen“ | Förderschnecke für 0 bis 120 Sekunden ansteuern |
 | Statussensor | Übersetzter Betriebszustand inklusive Fehler- und Türzuständen |
 | Messsensoren | Raum- und Rauchgastemperatur, Leistung, CO und Gesamtbetriebszeit |
 | Optionale Sensoren | Schachttemperatur und Sauerstoff; standardmäßig deaktiviert |
 | Diagnosesensoren | Rohwerte für Status, Unterstatus und Statusdauer; standardmäßig deaktiviert |
 
-Die Klima-Modi entsprechen der bewährten Add-on-Logik:
+Die Klima-Modi steuern jetzt den vollständigen Ofenbetrieb:
 
+- **Aus**: Ofen stoppen, `misc.stop = 1`
 - **Auto**: temperaturgeregelter Betrieb, fest `regulation.operation_mode = 1`
 - **Heizen**: Festleistungsbetrieb, `regulation.operation_mode = 0`
-- Start und Stopp erfolgen bewusst über den separaten Heizbetrieb-Schalter. „Aus“ ist nur ein angezeigter Aktivitätszustand und kein dritter Klima-Modus.
+
+Beim Wechsel von **Aus** zu **Auto** oder **Heizen** wird zuerst der gewünschte Regelungsmodus bestätigt und erst danach der Ofen mit `misc.start = 1` gestartet. **Aus** ändert den gespeicherten Regelungsmodus nicht. Ein späteres Einschalten stellt deshalb den zuletzt verwendeten Modus wieder her.
 
 Im Modus **Heizen** stehen direkt in der Klimakarte drei Voreinstellungen zur Verfügung:
 
@@ -30,12 +31,15 @@ Im Modus **Heizen** stehen direkt in der Klimakarte drei Voreinstellungen zur Ve
 
 Die Auswahl einer dieser Stufen wechselt bei Bedarf automatisch von **Auto** zu **Heizen**. Im Automatikbetrieb wird die gespeicherte Festleistung nicht verwendet und die Voreinstellung als „Ohne“ angezeigt.
 
+Beim Aktualisieren von v0.1.0 oder v0.1.1 entfernt die Integration die ersetzten Registry-Einträge für den alten Heizbetrieb-Schalter, die separate Festleistungsauswahl und das Abgasgebläse automatisch.
+
 ## Warum die native Integration zuverlässiger reagiert
 
 - NBE-Zugriffe werden serialisiert, weil `pyduro` einen festen lokalen UDP-Port verwendet und nicht threadsicher ist.
 - Jede Antwort wird auf Seriennummer, Funktion, Sequenznummer und NBE-Status geprüft.
 - Home Assistant übernimmt keine optimistischen Schaltzustände.
 - Nach jedem Befehl wird der Zustand unmittelbar erneut vom Ofen gelesen.
+- Start und Stopp werden als Impulsbefehle behandelt und mit zwei schnellen Statusabfragen verfolgt, ohne bei einer langsamen Ofenreaktion einen falschen Zustand anzuzeigen.
 - Solltemperatur, Betriebsmodus und feste Leistung werden durch Rücklesen bestätigt.
 - Nicht unterstützte Zusatzwerte legen nicht das gesamte Gerät lahm; nur die betroffenen Entitäten werden vorübergehend als nicht verfügbar markiert.
 - Kürzere oder längere Statusantworten werden anhand der tatsächlich vorhandenen Felder verarbeitet, statt die komplette Aktualisierung abzubrechen.

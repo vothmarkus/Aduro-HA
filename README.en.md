@@ -2,19 +2,20 @@
 
 Native Home Assistant integration for the **Aduro H2 hybrid stove** over the local NBE/UDP protocol. It provides the controls from the [Aduro2MQTT add-on](https://github.com/vothmarkus/Aduro2mqttAddon) without requiring MQTT or a separate add-on.
 
-## Features in v0.1.1
+## Features in v0.1.2
 
-- Climate entity for current/target temperature, operating mode, and three heat levels
-- Heating switch for start and stop
+- Climate entity for power, current/target temperature, operating mode, and three heat levels
 - Forced auger run from 0 to 120 seconds
 - Translated stove state
 - Room and smoke temperature, power, CO, and total-hours sensors
 - Shaft temperature and oxygen sensors, disabled by default
 - Disabled-by-default raw state diagnostic sensors
 
-Climate **Auto** is the Aduro H2 temperature mode and always writes `regulation.operation_mode = 1`. **Heat** selects fixed-power mode (`0`). Start and stop remain on the separate heating switch, matching the proven add-on behavior.
+The climate modes now control the complete stove operation: **Off** sends `misc.stop = 1`, **Auto** uses temperature mode (`regulation.operation_mode = 1`), and **Heat** uses fixed-power mode (`0`). When starting from Off, the integration confirms the selected regulation mode before sending `misc.start = 1`. Stopping preserves the stored regulation mode.
 
 In **Heat** mode, the climate card provides **Eco** (10%), **Comfort** (50%), and **Boost** (100%) presets. Selecting a preset automatically switches from Auto to Heat when needed. In Auto, the stored fixed-power value is inactive and the preset is shown as “None”.
+
+When upgrading from v0.1.0 or v0.1.1, the integration automatically removes the replaced registry entries for the old heating switch, fixed-power select, and exhaust-speed sensor.
 
 Commands are not optimistic. The integration validates the direct NBE reply, immediately refreshes the stove, and read-verifies persistent settings. It also validates response serial, function, sequence, and status fields.
 

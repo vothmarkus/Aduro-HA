@@ -18,6 +18,7 @@ from homeassistant.components.climate.const import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import AduroCoordinator
@@ -25,6 +26,8 @@ from .entity import AduroEntity
 from .model import (
     as_float,
     as_int,
+    climate_mode_commands,
+    climate_mode_key,
     fixed_power_for_preset,
     fixed_power_preset,
     is_heating,
@@ -47,14 +50,21 @@ class AduroClimate(AduroEntity, ClimateEntity):
     """Aduro temperature/fixed-power operating mode controller."""
 
     _attr_name = None
-    _attr_hvac_modes: ClassVar[list[HVACMode]] = [HVACMode.AUTO, HVACMode.HEAT]
+    _attr_hvac_modes: ClassVar[list[HVACMode]] = [
+        HVACMode.OFF,
+        HVACMode.AUTO,
+        HVACMode.HEAT,
+    ]
     _attr_preset_modes: ClassVar[list[str]] = [
         PRESET_ECO,
         PRESET_COMFORT,
         PRESET_BOOST,
     ]
     _attr_supported_features = (
-        ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+        ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.PRESET_MODE
+        | ClimateEntityFeature.TURN_ON
+        | ClimateEntityFeature.TURN_OFF
     )
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp = 5
@@ -72,6 +82,7 @@ class AduroClimate(AduroEntity, ClimateEntity):
             and "regulation" not in self.coordinator.data.stale_sections
             and self.current_temperature is not None
             and self.target_temperature is not None
+            and climate_mode_key(self.coordinator.data) is not None
         )
 
     @property
@@ -87,21 +98,20 @@ class AduroClimate(AduroEntity, ClimateEntity):
         return as_float(self.coordinator.data.setting("boiler", "temp"))
 
     @property
-    def hvac_mode(self) -> HVACMode:
-        # Aduro H2 temperature mode is fixed at operation_mode=1. No extra
-        # configurable mode value is intentionally introduced.
-        if as_int(self.coordinator.data.setting("regulation", "operation_mode")) == 1:
-            return HVACMode.AUTO
-        return HVACMode.HEAT
+    def hvac_mode(self) -> HVACMode | None:
+        """Return Off from actual state, otherwise the configured regulation."""
+        mode = climate_mode_key(self.coordinator.data)
+        return HVACMode(mode) if mode is not None else None
 
     @property
     def hvac_action(self) -> HVACAction:
+        if is_heating(self.coordinator.data) is not True:
+            return HVACAction.OFF
+
         power = as_float(self.coordinator.data.status.get("power_pct"))
         if power is not None:
-            return HVACAction.OFF if power == 0 else HVACAction.HEATING
-        return (
-            HVACAction.HEATING if is_heating(self.coordinator.data) else HVACAction.OFF
-        )
+            return HVACAction.IDLE if power == 0 else HVACAction.HEATING
+        return HVACAction.HEATING
 
     @property
     def preset_mode(self) -> str | None:
@@ -123,14 +133,45 @@ class AduroClimate(AduroEntity, ClimateEntity):
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         if hvac_mode not in self._attr_hvac_modes:
             raise ValueError(f"Unsupported Aduro HVAC mode: {hvac_mode}")
-        value = 1 if hvac_mode == HVACMode.AUTO else 0
-        await self.coordinator.async_command(
-            "regulation.operation_mode",
-            value,
-            verify=lambda data: values_equal(
-                data.setting("regulation", "operation_mode"), value
-            ),
+
+        commands = climate_mode_commands(self.coordinator.data, hvac_mode.value)
+        if commands is None:
+            raise HomeAssistantError("The Aduro operating state is unavailable")
+
+        for path, value in commands:
+            if path == "regulation.operation_mode":
+                # Confirm the desired regulation before starting a stopped stove.
+                await self.coordinator.async_command(
+                    path,
+                    value,
+                    verify=lambda data, expected=value: values_equal(
+                        data.setting("regulation", "operation_mode"), expected
+                    ),
+                )
+                continue
+
+            expected_on = path == "misc.start"
+            await self.coordinator.async_command(
+                path,
+                value,
+                verify=lambda data, expected=expected_on: is_heating(data) is expected,
+                strict_verify=False,
+            )
+
+    async def async_turn_on(self) -> None:
+        """Start the stove in its already configured Auto/Heat mode."""
+        operation_mode = as_int(
+            self.coordinator.data.setting("regulation", "operation_mode")
         )
+        if operation_mode not in (0, 1):
+            raise HomeAssistantError("The Aduro regulation mode is unavailable")
+        await self.async_set_hvac_mode(
+            HVACMode.AUTO if operation_mode == 1 else HVACMode.HEAT
+        )
+
+    async def async_turn_off(self) -> None:
+        """Stop the stove without changing its stored regulation mode."""
+        await self.async_set_hvac_mode(HVACMode.OFF)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set Eco/Comfort/Boost and activate fixed-power heating."""

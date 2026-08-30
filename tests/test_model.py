@@ -7,6 +7,8 @@ import pytest
 from custom_components.aduro.model import (
     AduroData,
     as_float,
+    climate_mode_commands,
+    climate_mode_key,
     fixed_power_for_preset,
     fixed_power_preset,
     is_heating,
@@ -52,6 +54,69 @@ def test_missing_heating_state_is_unknown() -> None:
 
 
 @pytest.mark.parametrize(
+    ("state", "operation_mode", "expected"),
+    [
+        (14, 1, "off"),
+        (13, 0, "off"),
+        (20, 1, "off"),
+        (28, 0, "off"),
+        (5, 1, "auto"),
+        (5, 0, "heat"),
+        (0, 1, "auto"),
+        (5, 2, None),
+    ],
+)
+def test_climate_mode_uses_actual_power_state(
+    state: int, operation_mode: int, expected: str | None
+) -> None:
+    data = AduroData(
+        status={"state": state},
+        settings={"regulation": {"operation_mode": operation_mode}},
+    )
+    assert climate_mode_key(data) == expected
+
+
+def test_climate_mode_is_unknown_without_stove_state() -> None:
+    data = AduroData(settings={"regulation": {"operation_mode": 1}})
+    assert climate_mode_key(data) is None
+
+
+@pytest.mark.parametrize(
+    ("state", "configured_mode", "target_mode", "expected"),
+    [
+        (5, 1, "auto", ()),
+        (5, 1, "heat", (("regulation.operation_mode", 0),)),
+        (5, 0, "off", (("misc.stop", 1),)),
+        (14, 1, "off", ()),
+        (14, 1, "auto", (("misc.start", 1),)),
+        (
+            14,
+            1,
+            "heat",
+            (("regulation.operation_mode", 0), ("misc.start", 1)),
+        ),
+    ],
+)
+def test_climate_command_plan_orders_mode_before_start(
+    state: int,
+    configured_mode: int,
+    target_mode: str,
+    expected: tuple[tuple[str, int], ...],
+) -> None:
+    data = AduroData(
+        status={"state": state},
+        settings={"regulation": {"operation_mode": configured_mode}},
+    )
+    assert climate_mode_commands(data, target_mode) == expected
+
+
+def test_climate_command_plan_rejects_unknown_state_or_mode() -> None:
+    assert climate_mode_commands(AduroData(), "auto") is None
+    data = AduroData(status={"state": 5})
+    assert climate_mode_commands(data, "unsupported") is None
+
+
+@pytest.mark.parametrize(
     ("power", "expected"),
     [
         (10, "eco"),
@@ -64,13 +129,25 @@ def test_missing_heating_state_is_unknown() -> None:
 )
 def test_fixed_power_preset_mapping(power: int, expected: str) -> None:
     data = AduroData(
-        settings={"regulation": {"operation_mode": 0, "fixed_power": power}}
+        status={"state": 5},
+        settings={"regulation": {"operation_mode": 0, "fixed_power": power}},
     )
     assert fixed_power_preset(data) == expected
 
 
 def test_fixed_power_preset_is_inactive_in_temperature_mode() -> None:
-    data = AduroData(settings={"regulation": {"operation_mode": 1, "fixed_power": 100}})
+    data = AduroData(
+        status={"state": 5},
+        settings={"regulation": {"operation_mode": 1, "fixed_power": 100}},
+    )
+    assert fixed_power_preset(data) is None
+
+
+def test_fixed_power_preset_is_inactive_while_stove_is_off() -> None:
+    data = AduroData(
+        status={"state": 14},
+        settings={"regulation": {"operation_mode": 0, "fixed_power": 100}},
+    )
     assert fixed_power_preset(data) is None
 
 

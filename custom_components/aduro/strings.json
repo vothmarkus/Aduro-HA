@@ -106,11 +106,6 @@
       "total_hours": {
         "name": "Total operating time"
       }
-    },
-    "switch": {
-      "heating": {
-        "name": "Heating"
-      }
     }
   }
 }

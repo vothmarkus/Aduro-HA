@@ -56,8 +56,10 @@ class AduroCoordinator(DataUpdateCoordinator[AduroData]):
         path: str,
         value: str | float,
         verify: VerifyCallback | None = None,
+        *,
+        strict_verify: bool = True,
     ) -> None:
-        """Send a command, refresh from the stove, and optionally verify read-back."""
+        """Send a command, refresh, and optionally require confirmed read-back."""
         try:
             await self.hass.async_add_executor_job(self.client.set_value, path, value)
         except AduroError as err:
@@ -79,6 +81,9 @@ class AduroCoordinator(DataUpdateCoordinator[AduroData]):
                 "The stove accepted the command, but Home Assistant could not "
                 "refresh its state. Check the current stove state before retrying."
             )
+
+        if not strict_verify:
+            return
 
         raise HomeAssistantError(
             "The stove accepted the command, but its read-back value did not match "
