@@ -16,6 +16,10 @@ MAX_SCAN_INTERVAL: Final = 300
 
 COMMAND_REFRESH_DELAYS: Final = (0.6, 1.5)
 
+# NBE uses UDP and the stove can occasionally drop a read request. Retrying
+# status reads is safe; write requests are deliberately never repeated.
+STATUS_RETRY_DELAYS: Final = (0.5, 1.5)
+
 FIXED_POWER_PRESETS: Final = {
     "eco": 10,
     "comfort": 50,

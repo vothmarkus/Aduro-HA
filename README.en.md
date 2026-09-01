@@ -2,7 +2,7 @@
 
 Native Home Assistant integration for the **Aduro H2 hybrid stove** over the local NBE/UDP protocol. It provides the controls from the [Aduro2MQTT add-on](https://github.com/vothmarkus/Aduro2mqttAddon) without requiring MQTT or a separate add-on.
 
-## Features in v0.1.3
+## Features in v0.1.4
 
 - Climate entity for power, current/target temperature, operating mode, and three heat levels
 - Forced auger run from 0 to 120 seconds
@@ -32,6 +32,8 @@ The setup flow tests the credentials directly with the stove before saving. The 
 ## Migrating from the add-on
 
 Stop the Aduro2MQTT add-on before testing this integration, keep it installed for rollback, and migrate automations after confirming the native entities. Retained MQTT Discovery topics can keep the old MQTT device visible; clear the matching `homeassistant/<platform>/aduro_h2_<object>/config` topics if needed.
+
+Do not restart the add-on while the native integration is active: both talk directly to the stove over NBE/UDP and can interfere with each other. Transiently lost status replies are retried automatically, while write commands always remain single-shot. A fixed DHCP assignment for the stove is recommended.
 
 ## Compatibility
 

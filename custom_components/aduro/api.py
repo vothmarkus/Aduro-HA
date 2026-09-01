@@ -8,6 +8,7 @@ import re
 from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
 from threading import Lock
+from time import sleep
 from typing import Any
 
 from pyduro.actions import STATUS_PARAMS
@@ -15,7 +16,7 @@ from pyduro.actions import get as pyduro_get
 from pyduro.actions import raw as pyduro_raw
 from pyduro.actions import set as pyduro_set
 
-from .const import WRITABLE_PATHS
+from .const import STATUS_RETRY_DELAYS, WRITABLE_PATHS
 from .model import AduroData, Value
 
 _LOGGER = logging.getLogger(__name__)
@@ -113,15 +114,35 @@ class AduroClient:
             )
 
     def _status_unlocked(self) -> dict[str, Value]:
-        response = self._request_unlocked(
-            pyduro_raw.run,
-            burner_address=self.host,
-            serial=self.serial,
-            pin_code=self.pin,
-            function_id=11,
-            payload="*",
-            expected_function=11,
-        )
+        attempts = len(STATUS_RETRY_DELAYS) + 1
+        for attempt in range(attempts):
+            try:
+                response = self._request_unlocked(
+                    pyduro_raw.run,
+                    burner_address=self.host,
+                    serial=self.serial,
+                    pin_code=self.pin,
+                    function_id=11,
+                    payload="*",
+                    expected_function=11,
+                )
+                break
+            except AduroConnectionError as err:
+                if attempt == attempts - 1:
+                    raise AduroConnectionError(
+                        f"{err} after {attempts} attempts"
+                    ) from err
+
+                delay = STATUS_RETRY_DELAYS[attempt]
+                _LOGGER.debug(
+                    "Aduro status request %d/%d failed; retrying in %.1f s: %s",
+                    attempt + 1,
+                    attempts,
+                    delay,
+                    err,
+                )
+                sleep(delay)
+
         payload = getattr(response, "payload", None)
         if not isinstance(payload, str) or not payload:
             raise AduroInvalidResponseError("Status response has no payload")

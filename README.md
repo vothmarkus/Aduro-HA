@@ -4,7 +4,7 @@ Native Home-Assistant-Integration für den **Aduro H2 Hybridofen** über das lok
 
 [English documentation](README.en.md)
 
-## Funktionen in v0.1.3
+## Funktionen in v0.1.4
 
 | Home-Assistant-Entität | Funktion |
 |---|---|
@@ -74,11 +74,15 @@ Anschließend Home Assistant neu starten und die Integration über die Benutzero
 
 Die alten MQTT-Discovery-Nachrichten sind retained und können deshalb im Broker erhalten bleiben. Falls das alte MQTT-Gerät erneut erscheint, die retained Konfigurationen mit einem MQTT-Werkzeug löschen. Sie liegen nach der Standardkonfiguration unter `homeassistant/<Plattform>/aduro_h2_<Objekt>/config`. Vorher prüfen, ob `device_id` oder `discovery_prefix` im Add-on abweichend eingestellt waren.
 
+Das Add-on darf während des Betriebs der nativen Integration nicht wieder gestartet werden: Beide greifen direkt per NBE/UDP auf den Ofen zu und können sich dabei gegenseitig stören.
+
 ## Hinweise
 
 - Getestete Zielplattform ist der Aduro H2. Andere NBE-kompatible Aduro-Hybridöfen können funktionieren, sind in v0.1 aber noch nicht bestätigt.
 - Einzelne Sensoren können je nach Firmware fehlen und werden dann automatisch als nicht verfügbar angezeigt.
 - Der Ofen muss aus dem Home-Assistant-Netz lokal per UDP erreichbar sein. Das NBE-Ziel ist Port `8483`; `pyduro` verwendet lokal Port `1901`.
+- Kurz verlorene UDP-Statusantworten werden automatisch erneut angefordert. Schreibbefehle werden aus Sicherheitsgründen nie automatisch wiederholt.
+- Für den Ofen sollte im Router eine feste DHCP-Zuweisung eingerichtet sein, damit die konfigurierte IP-Adresse gültig bleibt.
 - Verbindungsdaten lassen sich später über **Neu konfigurieren** ändern und werden erneut geprüft.
 
 ## Entwicklung und Tests

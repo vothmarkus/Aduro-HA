@@ -54,9 +54,33 @@ def test_validate_accepts_matching_response(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 def test_no_response_is_connection_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(api.pyduro_raw, "run", lambda **kwargs: None)
-    with pytest.raises(AduroConnectionError, match="No response"):
+    calls = 0
+
+    def no_response(**kwargs: Any) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(api.pyduro_raw, "run", no_response)
+    monkeypatch.setattr(api, "sleep", lambda delay: None)
+    with pytest.raises(AduroConnectionError, match="after 3 attempts"):
         AduroClient("192.0.2.10", "84956", "4438539130").validate()
+    assert calls == 3
+
+
+def test_status_recovers_after_transient_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    responses = iter(
+        [None, Response(11, status_payload(state=5, power_pct=50))]
+    )
+    delays: list[float] = []
+
+    monkeypatch.setattr(api.pyduro_raw, "run", lambda **kwargs: next(responses))
+    monkeypatch.setattr(api, "sleep", delays.append)
+
+    AduroClient("192.0.2.10", "84956", "4438539130").validate()
+
+    assert delays == [0.5]
 
 
 def test_incomplete_status_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -177,3 +201,20 @@ def test_set_is_allowlisted_and_validates_reply(
 
     with pytest.raises(ValueError, match="Unsupported"):
         client.set_value("manual.unsafe", 1)
+
+
+def test_write_timeout_is_not_retried(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = 0
+
+    def no_response(*args: Any, **kwargs: Any) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(api.pyduro_set, "run", no_response)
+
+    with pytest.raises(AduroConnectionError, match="No response"):
+        AduroClient("192.0.2.10", "84956", "4438539130").set_value(
+            "misc.start", 1
+        )
+
+    assert calls == 1

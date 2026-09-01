@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+- Retry transient UDP connection failures for mandatory status reads
+- Keep write commands single-shot so start, stop, and setting changes are never duplicated
+- Document that the MQTT add-on must remain stopped while the native integration is active
+
 ## 0.1.3
 
 - Add the combined Home Assistant/Aduro icon and logo from Aduro2mqttAddon
